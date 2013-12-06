@@ -1,6 +1,12 @@
 # Metadata::Ingest::Form
 
-TODO: Write a gem description
+Provides form-backing objects for metadata models
+
+An attempt to provide simpler access to complex back-end data by telling
+the form how to group similar fields into a single dual-field entity
+("type" and "value" combine to tell the system what the field actually
+means).  This only provides a model for doing this - translation is
+currently not included.
 
 ## Installation
 

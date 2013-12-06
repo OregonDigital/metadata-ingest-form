@@ -8,8 +8,7 @@ Gem::Specification.new do |spec|
   spec.version       = Metadata::Ingest::Form::VERSION
   spec.authors       = ["Jeremy Echols"]
   spec.email         = ["jechols@uoregon.edu"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
+  spec.summary       = %q{Form-backing objects for metadata models}
   spec.homepage      = ""
   spec.license       = "MIT"
 
