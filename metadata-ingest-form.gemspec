@@ -16,6 +16,8 @@ Gem::Specification.new do |spec|
   spec.test_files    = Dir['spec/**/*']
   spec.require_paths = ["lib"]
 
+  spec.add_runtime_dependency "activemodel", ">= 3.0"
+  spec.add_development_dependency "rspec", "~> 1.3"
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
 end
