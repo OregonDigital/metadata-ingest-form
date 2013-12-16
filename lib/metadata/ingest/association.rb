@@ -39,6 +39,18 @@ module Metadata
         return false unless @value == other.value
         return true
       end
+
+      # Returns false to conform to ActiveRecord-like specs.  States that this "record" is not
+      # going to be destroyed when the parent (ingest form) is saved.
+      def marked_for_destruction?
+        return false
+      end
+
+      # This API is also used to conform to AR specs.  Always returns marked_for_destruction since
+      # that's what AR does.
+      def _destroy
+        return marked_for_destruction?
+      end
     end
   end
 end
