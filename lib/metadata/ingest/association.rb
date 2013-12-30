@@ -7,7 +7,7 @@ module Metadata
     class Association < FormBacker
       include ActiveModel::Validations
 
-      attr_accessor :type, :value, :group
+      attr_accessor :type, :value, :group, :internal
 
       validate :must_have_type_and_value
 
@@ -15,6 +15,7 @@ module Metadata
         @group = args[:group]
         @type = args[:type]
         @value = args[:value]
+        @internal = args[:internal]
       end
 
       # True if both type and value are empty.  In that state, the object represents a placeholder for
@@ -34,9 +35,9 @@ module Metadata
 
       # Allow equivalent objects to be considered equal
       def ==(other)
-        return false unless @group == other.group
-        return false unless @type == other.type
-        return false unless @value == other.value
+        for field in [:group, :type, :value, :internal]
+          return false unless self.send(field) == other.send(field)
+        end
         return true
       end
 
