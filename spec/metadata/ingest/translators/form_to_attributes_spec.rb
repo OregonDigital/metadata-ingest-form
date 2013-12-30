@@ -47,7 +47,6 @@ describe Metadata::Ingest::Translators::FormToAttributes do
     expect(object).to receive(:alt_title=).with(["alt 1", "alt 2"])
     expect(object).to receive(:photographer=).with("Photographer Name")
     expect(object).to receive(:subject=).with("subject keyword")
-    p @filled_form.associations
     Metadata::Ingest::Translators::FormToAttributes.from(@filled_form).to(object)
   end
 end
