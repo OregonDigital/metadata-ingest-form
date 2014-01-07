@@ -30,10 +30,6 @@ And then execute:
 
     $ bundle
 
-Or install it yourself as:
-
-    $ gem install metadata-ingest-form
-
 ## Usage
 
 `Metadata::Ingest::Form` is the top-level FBO (Form-backing object) class.  At
