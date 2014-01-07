@@ -24,9 +24,10 @@ describe Metadata::Ingest::Translators::FormToAttributes do
 
     # Use the translator to set up form groups
     Metadata::Ingest::Form.internal_groups = Metadata::Ingest::Translators::FormToAttributes.form_groups
+  end
 
-    # Set up a pre-populated form
-    @filled_form = Metadata::Ingest::Form.new(
+  let(:form_attrs) do
+    {
       "titles_attributes" => {
         "1" => {"type" => "main", "value" => "This is a main title"},
         "2" => {"type" => "alt", "value" => "alt 1"},
@@ -38,8 +39,10 @@ describe Metadata::Ingest::Translators::FormToAttributes do
       "subjects_attributes" => {
         "14325432" => {"type" => "keyword", "value" => "subject keyword"}
       }
-    )
+    }
   end
+
+  let(:form) { Metadata::Ingest::Form.new(form_attrs) }
 
   it "delegates a form's data to object attributes" do
     object = double("object")
@@ -47,7 +50,14 @@ describe Metadata::Ingest::Translators::FormToAttributes do
     expect(object).to receive(:alt_title=).with(["alt 1", "alt 2"])
     expect(object).to receive(:photographer=).with("Photographer Name")
     expect(object).to receive(:subject=).with("subject keyword")
-    p @filled_form.associations
-    Metadata::Ingest::Translators::FormToAttributes.from(@filled_form).to(object)
+    Metadata::Ingest::Translators::FormToAttributes.from(form).to(object)
+  end
+
+  it "sets the object to use an internal value when present" do
+    int = "http://foo.example.com/ns/102321"
+    form_attrs["subjects_attributes"]["14325432"]["internal"] = int
+    object = double("object").as_null_object
+    expect(object).to receive(:subject=).with(int)
+    Metadata::Ingest::Translators::FormToAttributes.from(form).to(object)
   end
 end

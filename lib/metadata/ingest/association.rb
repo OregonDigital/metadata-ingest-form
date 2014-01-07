@@ -3,11 +3,35 @@ require "metadata/ingest/form_backer"
 
 module Metadata
   module Ingest
-    # Simple association class for ingest form's nested data
+    # Simple association class for ingest form's nested data.  Attributes:
+    # * `group`: Human interface element for grouping similar data - titles,
+    #   subjects, etc
+    # * `type`: More specific data for what this data means within a group -
+    #   main title, alternate title, etc
+    # * `value`: Human-friendly value
+    # * `internal`: Internal representation of the value, if applicable
+    #
+    # Type and value must always be present for a valid object.  Group isn't
+    # strictly required, but it won't make sense for translation without a
+    # group.
+    #
+    # Internal data is optional, and only used for complex data that requires a
+    # human-readable component.  For instance, on a web form an autocomplete
+    # could show the user "Food industry and trade" when "food" was typed in.
+    # On selection and save, the form would send "Food industry and trade" as
+    # `value`, but "http://id.loc.gov/authorities/subjects/sh85050282" would be
+    # sent as `internal`.  Using the standard form-to-attribute translator, the
+    # object would never see the human-friendly term and only receive the URI.
+    #
+    # When converting from object to form (for editing or even display), the
+    # translator would need to be able to recognize that
+    # "http://id.loc.gov/authorities/subjects/sh85050282" isn't a
+    # human-friendly value so it could put that into `internal` and put "Food
+    # industry and trade" into `value`.
     class Association < FormBacker
       include ActiveModel::Validations
 
-      attr_accessor :type, :value, :group
+      attr_accessor :type, :value, :group, :internal
 
       validate :must_have_type_and_value
 
@@ -15,6 +39,7 @@ module Metadata
         @group = args[:group]
         @type = args[:type]
         @value = args[:value]
+        @internal = args[:internal]
       end
 
       # True if both type and value are empty.  In that state, the object represents a placeholder for
@@ -34,9 +59,9 @@ module Metadata
 
       # Allow equivalent objects to be considered equal
       def ==(other)
-        return false unless @group == other.group
-        return false unless @type == other.type
-        return false unless @value == other.value
+        for field in [:group, :type, :value, :internal]
+          return false unless self.send(field) == other.send(field)
+        end
         return true
       end
 

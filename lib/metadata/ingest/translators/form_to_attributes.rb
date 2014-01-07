@@ -60,7 +60,8 @@ module Metadata::Ingest::Translators
       end
     end
 
-    # Converts a single association (from @form) into a key-value pair in @attributes
+    # Converts a single association (from @form) into a key-value pair in @attributes.  If the
+    # association has `internal`, that field will be the value, otherwise `value` is used.
     def translate_association(assoc)
       group_data = self.class.map[assoc.group.to_sym]
       return unless group_data
@@ -68,7 +69,7 @@ module Metadata::Ingest::Translators
       attribute = group_data[assoc.type.to_sym]
       return unless attribute
 
-      store_attribute_value(attribute, assoc.value)
+      store_attribute_value(attribute, assoc.internal || assoc.value)
     end
 
     # Adds the given value to the attribute in @attributes.  If there are no existing values,

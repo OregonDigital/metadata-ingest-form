@@ -17,6 +17,10 @@ describe Metadata::Ingest::Association do
     it "should set @value if a :value is passed in" do
       Metadata::Ingest::Association.new(:value => "value").value.should eq("value")
     end
+
+    it "should set @internal if a :internal is passed in" do
+      Metadata::Ingest::Association.new(:internal => "internal").internal.should eq("internal")
+    end
   end
 
   # Validations
@@ -46,6 +50,15 @@ describe Metadata::Ingest::Association do
       @association.errors[:value].should eq([])
       @association.errors[:type].should eq([])
       @association.errors.should be_empty
+    end
+
+    it "should be valid whether or not internal is set" do
+      @association.internal = "foo"
+      @association.should be_valid
+      @association.internal = ""
+      @association.should be_valid
+      @association.internal = nil
+      @association.should be_valid
     end
 
     it "should be valid if the object is blank" do

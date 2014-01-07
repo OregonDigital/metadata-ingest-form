@@ -175,13 +175,17 @@ describe Metadata::Ingest::Form do
     end
 
     it "should expose methods which create and access data properly" do
-      @if.foos_attributes = {0 => {:type => "type 0", :value => "value 0"}, 1 => {:type => "type 1", :value => "value 1"}}
-      @if.build_foo(:type => "type 2", :value => "value 2")
+      @if.foos_attributes = {
+        0 => {:type => "type 0", :value => "value 0", :internal => 0},
+        1 => {:type => "type 1", :value => "value 1", :internal => 1},
+      }
+      @if.build_foo(:type => "type 2", :value => "value 2", :internal => 2)
       for foo in @if.foos
         foo.group.should eq("foo")
         foo.type.should match(/^type \d$/)
         foo.type =~ /(\d)/
         foo.value.should eq("value #{$1}")
+        foo.internal.should eq($1.to_i)
       end
     end
   end
