@@ -95,6 +95,8 @@ certain.
 
 ### Within the Rails stack
 
+#### Form
+
 In the controller, you'll set up an ingest form object in some way (note
 that there are no built-in classes to help load it from existing data):
 
@@ -127,6 +129,8 @@ This gives you a form which has two "entities", but can represent five fields
 (main title, alternate title, lcsh subjects, etc).  With proper JavaScript, you
 can duplicate fields to allow for more than one within each group.
 
+#### Posted data
+
 The form data comes in looking something like this:
 
 ```ruby
@@ -142,6 +146,8 @@ The form data comes in looking something like this:
   }
 }
 ```
+
+#### Translation into asset data
 
 If you use the basic translator, it requires some setup - this could be in the
 controller or an initializer, pulled from a database or hard-coded, whatever.
@@ -176,18 +182,25 @@ This tells the translator that any associated title data with a type of "main"
 will be delegated to the `main_title` field on the asset.  So basically, with
 this map in place, the above command:
 
-    test.build_title(type: "main", value: "Test title")
+```ruby
+test.build_title(type: "main", value: "Test title")
+```
 
 is similar to this:
 
-    asset.main_title = "Test title"
+```ruby
+asset.main_title = "Test title"
+```
 
 (Note that I say "similar" to - the `FormToAttributes` translation by default
 allows any number of any attribute, so a call to `build_title` just adds a new
 association, it doesn't remove old data.  For that kind of operation,
 `titles_attributes=` is a better, if more verbose, option)
 
-To make this work in your controller, you'll have something like this:
+#### Translator in the controller
+
+To make all this magic this work in your controller, you'll have something like
+this:
 
 ```ruby
 def create
