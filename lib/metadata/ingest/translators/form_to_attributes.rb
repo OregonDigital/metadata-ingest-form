@@ -46,7 +46,9 @@ module Metadata::Ingest::Translators
       build_translated_attribute_hash
 
       for attr, val in @attributes
-        output.send("#{attr}=", val)
+        objects = attr.to_s.split(".")
+        attribute = objects.pop
+        objects.reduce(output, :send).send("#{attribute}=", val)
       end
     end
 

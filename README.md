@@ -157,8 +157,9 @@ But however it's built, it needs to be set up prior to converting the data.
 # Set up the map that tells us how forms turn into attributes
 form_map = {
   group: {
-    type: attribute_to_delegate,
-    type2: another_attribute
+    type: :attribute_to_delegate,
+    type2: :another_attribute,
+    deep_delegation: "some_object.attribute"
   },
   title: {
     main: :main_title,
@@ -196,6 +197,19 @@ asset.main_title = "Test title"
 allows any number of any attribute, so a call to `build_title` just adds a new
 association, it doesn't remove old data.  For that kind of operation,
 `titles_attributes=` is a better, if more verbose, option)
+
+If you need delegation through one or more objects. just specify this in the
+map much as you would in code.  Using the `deep_delegation` map, this:
+
+```ruby
+test.build_group(type: "deep_delegation", value: "testing")
+```
+
+is similar to this:
+
+```ruby
+asset.some_object.attribute = "testing"
+```
 
 #### Translator in the controller
 
