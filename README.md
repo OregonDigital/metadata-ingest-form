@@ -4,9 +4,9 @@ Provides form-backing objects for metadata models
 
 An attempt to provide simpler access to complex back-end data by telling the
 form how to group similar fields into a multiple field entity.  This only
-provides a model for doing this and a simple attribute-delegation translator.
-No UI elements are provided, and complex translation is left as an exercise to
-the reader.
+provides a model for doing this and a simple two-way attribute-delegation
+translator.  No UI elements are provided, and complex translation is left as an
+exercise to the reader.
 
 ## READ THIS!
 
@@ -227,6 +227,91 @@ def create
   redirect_to :index
 end
 ```
+
+#### Translating from an object to a form
+
+The reverse of the above process is necessary for editing or updating an
+existing object.  As is the case above, a basic translator is provided,
+`Metadata::Ingest::Translators::AttributesToForm`, and should work for many
+cases that just need an object's attributes converted into raw form data.
+
+The map used is the same format at for the form-to-attribute converter,
+allowing easier reuse of configuration.  In a controller, you might have
+something like this:
+
+```ruby
+@asset = YourClass.load_from_some_datasource(params[...])
+@form = Metadata::Ingest::Form.new
+Metadata::Ingest::Translators::AttributesToForm.from(@asset).to(@form)
+```
+
+This is enough for an edit action, but update would require storing new
+attributes, translating back to the asset, and saving the asset.
+
+```ruby
+# Assign web-form attributes to the ingest form instance which is now loaded
+# with asset data
+@form.attributes = params[:metadata_ingest_form].to_hash
+
+# Translate form data back into the asset again
+Metadata::Ingest::Translators::FormToAttributes.from(@form).to(@asset)
+
+# Save the asset
+@asset.save
+```
+
+#### Complex translations
+
+The translation from asset to ingest form can be more complicated than the
+reverse due to a web form potentially needing to have human-friendly data for
+display, but internal data for the system.  For instance, if using Library of
+Congress Subject Headings, you might prefer to store a URI to the data, but
+display the text.  Your UI should set the `internal` field to said URI when a
+user chooses a subject heading.  If you do this, the built-in translator works
+as-is for this flow: web form -> ingest form instance -> asset data.  But to go
+from attributes back to a form requires some way to detect when an attribute
+has an internal value, and then to convert that value.  As this can vary wildly
+from situation to situation, we tried to provide an easy-to-customize system
+based on subclassing.
+
+Let's assume the above case where subjects are LCSH URIs and need to load into
+a form properly.  The following steps would need to be taken:
+
+* Subclass `Metadata::Ingest::Translators::SingleAttributeTranslator`
+* In the subclass, override `build_association(value)`
+* Use the passed-in value and instance variables to determine how to modify the
+  `Metadata::Ingest::Association` instance.  The variables are relevant to the
+  context of the current attribute definition, so you can determine which
+  group/type/attribute definition you're working with:
+  * `@group`: The group as defined in the translation map, e.g., "subject"
+  * `@type`: The type as defined in the translation map, e.g., "lcsh"
+  * `@attribute_definition`: The attribute defintion as defined in the
+    translation map, e.g., "descMetadata.lcsh_subject"
+  * `@object`: The actual object which will be used in the case of deep
+    delegation.
+  * `@attribute`: The attribute which will be looked up on `@object`, again for
+    supporting deep delegation.
+* Update your translation call to something like this:
+
+```ruby
+Metadata::Ingest::Translators::AttributesToForm.
+  from(@asset).
+  using_translator(YourSuperAwesomeSubclass).
+  to(@form)
+```
+
+(Note the addition of `using_translator` to the chain)
+
+`@object` and `@attribute` can be used in cases where the final object may be a
+delegated object which differs from the source object, as might be the case
+when an attribute definition is set to something like
+"descMetadata.lcsh_subject".  In that case, `@object` would be the value of
+`asset.descMetadata`, and `@attribute` would be "`lcsh_subject`".
+`build_association`'s passed-in `value` object would be the result of
+`asset.descMetadata.lcsh_subject`.
+
+*tl;dr*: This setup allows us to have a single object which houses all necessary state for a
+single attribute's conversion.
 
 ## Contributing
 
