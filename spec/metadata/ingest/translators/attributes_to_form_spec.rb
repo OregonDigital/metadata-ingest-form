@@ -54,4 +54,12 @@ describe Metadata::Ingest::Translators::AttributesToForm do
     expect(form.subjects).to include_association("subject", "lcsh", "http://foo.example.com/ns/102321")
     expect(form.subjects.length).to eq(2)
   end
+
+  it "doesn't build data when the attribute is nil" do
+    object.stub(:title => nil)
+    object.stub(:alt_title => nil)
+    Metadata::Ingest::Translators::AttributesToForm.from(object).to(form)
+    expect(form.titles).to include_association("title", "deep", "Deep title test")
+    expect(form.titles.length).to eq(1)
+  end
 end
