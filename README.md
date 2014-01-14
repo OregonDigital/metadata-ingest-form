@@ -310,6 +310,12 @@ when an attribute definition is set to something like
 `build_association`'s passed-in `value` object would be the result of
 `asset.descMetadata.lcsh_subject`.
 
+There's a very simplistic example of this in the tests.  There is a
+[SingleAttributeTranslator
+subclass](spec/support/single_translator_override.rb) which is used in the
+[attributes-to-form
+spec](spec/metadata/ingest/translators/attributes_to_form_spec.rb).
+
 *tl;dr*: This setup allows us to have a single object which houses all necessary state for a
 single attribute's conversion.
 
