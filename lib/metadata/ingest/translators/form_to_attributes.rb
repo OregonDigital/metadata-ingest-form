@@ -54,7 +54,6 @@ module Metadata::Ingest::Translators
 
     # Converts @form's associations to a hash of attributes and values
     def build_translated_attribute_hash
-      map = self.class.map
       @attributes = {}
 
       for assoc in @form.associations
