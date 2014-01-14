@@ -1,30 +1,10 @@
 require "metadata/ingest/translators/form_to_attributes"
+require_relative "../../../support/map.rb"
 
 describe Metadata::Ingest::Translators::FormToAttributes do
   before(:each) do
-    # This has WAY too much setup - figure out something better!
-
     # Set up a translator map
-    Metadata::Ingest::Translators::FormToAttributes.map = {
-      title: {
-        main: :title,
-        alt: :alt_title,
-        deep: "some.object.deep_title",
-      },
-
-      creator: {
-        creator: :creator,
-        photographer: :photographer,
-      },
-
-      subject: {
-        keyword: :subject,
-        lcsh: :lcsh_subject,
-      },
-    }
-
-    # Use the translator to set up form groups
-    Metadata::Ingest::Form.internal_groups = Metadata::Ingest::Translators::FormToAttributes.form_groups
+    setup_map(Metadata::Ingest::Translators::FormToAttributes)
 
     # Make a nice object double with stubs so we know we're expecting exactly what we should
     @object = double("object")
