@@ -55,4 +55,10 @@ describe Metadata::Ingest::Translators::FormToAttributes do
     expect(@object).to receive(:subject=).with(int)
     Metadata::Ingest::Translators::FormToAttributes.from(form).to(@object)
   end
+
+  it "doesn't use a blank internal over a non-blank value" do
+    form_attrs["subjects_attributes"]["14325432"]["internal"] = ""
+    expect(@object).to receive(:subject=).with("subject keyword")
+    Metadata::Ingest::Translators::FormToAttributes.from(form).to(@object)
+  end
 end

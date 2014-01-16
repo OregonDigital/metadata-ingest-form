@@ -70,7 +70,12 @@ module Metadata::Ingest::Translators
       attribute = group_data[assoc.type.to_sym]
       return unless attribute
 
-      store_attribute_value(attribute, assoc.internal || assoc.value)
+      # This is necessary for web forms where "internal" => "" is a very
+      # expected situation we have to handle.  I'm not sure there are valid
+      # situations where an internal value of "" is actually worthy of
+      # preservation when the "value" field has data.
+      value = assoc.internal.blank? ? assoc.value : assoc.internal
+      store_attribute_value(attribute, value)
     end
 
     # Adds the given value to the attribute in @attributes.  If there are no existing values,
