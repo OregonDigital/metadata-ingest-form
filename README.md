@@ -172,16 +172,17 @@ form_map = {
   }
 }
 
-# Store the map on the built-in translator
-Metadata::Ingest::Translators::FormToAttributes.map = form_map
+# Create a translator for some asset, and set its map data
+translator = Metadata::Ingest::Translators::FormToAttributes.from(some_asset).using_map(form_map)
 
 # Internal groups can be built from the map as well
 Metadata::Ingest::Form.internal_groups = form_map.keys.collect {|key| key.to_s}
 ```
 
-This tells the translator that any associated title data with a type of "main"
-will be delegated to the `main_title` field on the asset.  So basically, with
-this map in place, the above command:
+This sets up a translator for a given asset, and assigns the hash as its map.
+The map above tells the translator that any associated title data with a type
+of "main" will be delegated to the `main_title` field on the asset.  So
+basically, with this map in place, the above command:
 
 ```ruby
 test.build_title(type: "main", value: "Test title")
@@ -221,7 +222,10 @@ def create
   # I can't recall why, but to_hash must be called here.  I might fix it when I have time.
   @form = Metadata::Ingest::Form.new(params[:metadata_ingest_form].to_hash)
   @asset = YourClass.new
-  Metadata::Ingest::Translators::FormToAttributes.from(@form).to(@asset)
+  Metadata::Ingest::Translators::FormToAttributes.
+      from(@form).
+      using_map(translation_map).
+      to(@asset)
   @asset.save
 
   redirect_to :index
@@ -235,14 +239,17 @@ existing object.  As is the case above, a basic translator is provided,
 `Metadata::Ingest::Translators::AttributesToForm`, and should work for many
 cases that just need an object's attributes converted into raw form data.
 
-The map used is the same format at for the form-to-attribute converter,
+The map used is the same format as the form-to-attribute converter's,
 allowing easier reuse of configuration.  In a controller, you might have
 something like this:
 
 ```ruby
 @asset = YourClass.load_from_some_datasource(params[...])
 @form = Metadata::Ingest::Form.new
-Metadata::Ingest::Translators::AttributesToForm.from(@asset).to(@form)
+Metadata::Ingest::Translators::AttributesToForm.
+    from(@asset).
+    using_map(translation_map).
+    to(@form)
 ```
 
 This is enough for an edit action, but update would require storing new
@@ -254,7 +261,10 @@ attributes, translating back to the asset, and saving the asset.
 @form.attributes = params[:metadata_ingest_form].to_hash
 
 # Translate form data back into the asset again
-Metadata::Ingest::Translators::FormToAttributes.from(@form).to(@asset)
+Metadata::Ingest::Translators::FormToAttributes.
+    from(@form).
+    using_map(translation_map).
+    to(@asset)
 
 # Save the asset
 @asset.save
@@ -296,6 +306,7 @@ a form properly.  The following steps would need to be taken:
 ```ruby
 Metadata::Ingest::Translators::AttributesToForm.
   from(@asset).
+  using_map(translation_map).
   using_translator(YourSuperAwesomeSubclass).
   to(@form)
 ```
