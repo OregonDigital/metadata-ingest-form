@@ -1,5 +1,6 @@
 require "metadata/ingest/form"
 require "ostruct"
+require_relative "../../support/include_association.rb"
 
 describe Metadata::Ingest::Form do
   before(:each) do
@@ -91,47 +92,41 @@ describe Metadata::Ingest::Form do
   end
 
   describe "#attributes=" do
-    it "shouldn't set nested data if no nested attributes are passed in" do
-      @if.should_not_receive(:titles_attributes=)
-      @if.attributes = {}
+    let(:attributes) do
+      {
+        "titles_attributes" => {
+          "1" => {"type" => "main", "value" => "Main title"},
+          "2" => {"type" => "main", "value" => "Main title #2"}
+        },
+        "foos_attributes" => {
+          "1" => {"type" => "lcsh", "value" => "Blah"},
+        }
+      }
     end
 
-    it "should set valid groups' attributes" do
-      Metadata::Ingest::Form.stub(:groups).and_return(["titles", "subjects"])
-      test_groups = Metadata::Ingest::Form.groups + ["foos"]
-      attrs = {}
-      doubles = {}
-
-      for group in test_groups
-        doubles[group] = double(group + " attributes")
-        attrs[group + "_attributes"] = doubles[group]
-
-        if Metadata::Ingest::Form.valid_group?(group)
-          @if.should_receive(:"#{group}_attributes=").with(doubles[group]).once
-        else
-          @if.should_not_receive(:"#{group}_attributes=")
-        end
-      end
-
-      @if.attributes = attrs
+    before(:each) do
+      @if = Metadata::Ingest::Form.new
+      @if.attributes = attributes
     end
 
-    it "should no longer be empty if any group is set" do
-      Metadata::Ingest::Form.stub(:groups).and_return(["foo"])
-      attrs = { "foos_attributes" => {1 => {"type" => :main, "value" => "foo"}} }
-
-      @if.should be_empty
-      @if.attributes = attrs
-      @if.should_not be_empty
+    it "should create one association for each valid group" do
+      @if.associations.length.should eq(2)
     end
 
-    it "should still be empty if no groups are set" do
-      Metadata::Ingest::Form.stub(:groups).and_return(["bar"])
-      attrs = { "foos_attributes" => {1 => {"type" => :main, "value" => "foo"}} }
+    it "should expose data for all valid groups" do
+      @if.titles.should include_association("title", "main", "Main title")
+      @if.titles.should include_association("title", "main", "Main title #2")
+    end
 
-      @if.should be_empty
-      @if.attributes = attrs
-      @if.should be_empty
+    it "should prevent accessing invalid groups' data" do
+      @if.associations.should match_array(@if.titles)
+      @if.associations.should_not include_association("foo", "lcsh", "Blah")
+    end
+
+    it "should expose extra data if the groups are changed to make 'bad' data valid" do
+      Metadata::Ingest::Form.internal_groups << "foo"
+      @if.associations.length.should eq(3)
+      @if.associations.should include_association("foo", "lcsh", "Blah")
     end
   end
 

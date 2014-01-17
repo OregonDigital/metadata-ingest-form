@@ -84,12 +84,11 @@ module Metadata
         # Check for unknown data
         @raw_statements = attributes.delete("raw_statements") if attributes["raw_statements"]
 
-        # Check for attributes for ingest top-level groups
-        for group in self.class.groups
-          group_attr = "%s_attributes" % group.pluralize
-          method = (group_attr + "=").to_sym
-          value = attributes[group_attr] || attributes[group_attr.to_sym]
-          self.send(group_attr + "=", value) if value
+        # Check for *_attributes keys for building groups
+        for attr, values in attributes
+          if attr =~ /\A(\w+)_attributes\Z/
+            _build_groups($1.singularize, values)
+          end
         end
       end
 
