@@ -1,8 +1,3 @@
-# Sets up a map for the given translator
-def setup_map(translator)
-  translator.map = translation_map
-end
-
 # Returns the translation map used for tests
 def translation_map
   return {

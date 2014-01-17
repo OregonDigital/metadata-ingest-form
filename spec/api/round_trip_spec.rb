@@ -5,9 +5,6 @@ require_relative "../support/map.rb"
 
 describe "round-trip translation" do
   before(:each) do
-    setup_map(Metadata::Ingest::Translators::FormToAttributes)
-    setup_map(Metadata::Ingest::Translators::AttributesToForm)
-
     # Use the map to set up form groups
     Metadata::Ingest::Form.internal_groups = translation_map.keys.collect(&:to_s)
   end
@@ -32,14 +29,14 @@ describe "round-trip translation" do
     # This is weird but we have to have a place for the deep title data to go
     object = OpenStruct.new(some: OpenStruct.new(object: OpenStruct.new))
 
-    Metadata::Ingest::Translators::FormToAttributes.from(form).to(object)
+    Metadata::Ingest::Translators::FormToAttributes.from(form).using_map(translation_map).to(object)
 
     # Sanity check
     expect(object.some.object.deep_title).to eql("deep title test")
     expect(object.alt_title).to eql(["alt 1", "alt 2"])
 
     new_form = Metadata::Ingest::Form.new
-    Metadata::Ingest::Translators::AttributesToForm.from(object).to(new_form)
+    Metadata::Ingest::Translators::AttributesToForm.from(object).using_map(translation_map).to(new_form)
 
     for assoc in form.associations
       expect(new_form.associations).to include(assoc)
@@ -63,7 +60,7 @@ describe "round-trip translation" do
     )
 
     form = Metadata::Ingest::Form.new
-    Metadata::Ingest::Translators::AttributesToForm.from(object).to(form)
+    Metadata::Ingest::Translators::AttributesToForm.from(object).using_map(translation_map).to(form)
 
     # Sanity check
     expected_subject = Metadata::Ingest::Association.new(
@@ -77,7 +74,7 @@ describe "round-trip translation" do
     # This is weird but we have to have a place for the deep title data to go
     new_object = OpenStruct.new(some: OpenStruct.new(object: OpenStruct.new))
 
-    Metadata::Ingest::Translators::FormToAttributes.from(form).to(new_object)
+    Metadata::Ingest::Translators::FormToAttributes.from(form).using_map(translation_map).to(new_object)
 
     expect(new_object).to eq(object)
   end

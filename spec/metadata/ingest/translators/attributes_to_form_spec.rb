@@ -28,15 +28,17 @@ describe Metadata::Ingest::Translators::AttributesToForm do
 
   let(:form) { Metadata::Ingest::Form.new }
 
-  before(:each) do
-    setup_map(Metadata::Ingest::Translators::AttributesToForm)
+  let(:translator) {
+    Metadata::Ingest::Translators::AttributesToForm.from(object).using_map(translation_map)
+  }
 
+  before(:each) do
     # Use the map to set up form groups
     Metadata::Ingest::Form.internal_groups = translation_map.keys.collect(&:to_s)
   end
 
   it "builds titles" do
-    Metadata::Ingest::Translators::AttributesToForm.from(object).to(form)
+    translator.to(form)
     expect(form.titles).to include_association("title", "main", "This is a main title")
     expect(form.titles).to include_association("title", "alt", "alt 1")
     expect(form.titles).to include_association("title", "alt", "alt 2")
@@ -45,14 +47,14 @@ describe Metadata::Ingest::Translators::AttributesToForm do
   end
 
   it "builds creators" do
-    Metadata::Ingest::Translators::AttributesToForm.from(object).to(form)
+    translator.to(form)
     expect(form.creators).to include_association("creator", "photographer", "Photographer Name")
     expect(form.creators).to include_association("creator", "creator", "Creator Name")
     expect(form.creators.length).to eq(2)
   end
 
   it "builds subjects" do
-    Metadata::Ingest::Translators::AttributesToForm.from(object).to(form)
+    translator.to(form)
     expect(form.subjects).to include_association("subject", "keyword", "subject keyword")
     expect(form.subjects).to include_association("subject", "lcsh", "http://foo.example.com/ns/102321")
     expect(form.subjects.length).to eq(2)
@@ -61,7 +63,7 @@ describe Metadata::Ingest::Translators::AttributesToForm do
   it "doesn't build data when the attribute is nil" do
     object.stub(:title => nil)
     object.stub(:alt_title => nil)
-    Metadata::Ingest::Translators::AttributesToForm.from(object).to(form)
+    translator.to(form)
     expect(form.titles).to include_association("title", "deep", "Deep title test")
     expect(form.titles.length).to eq(1)
   end
@@ -70,10 +72,7 @@ describe Metadata::Ingest::Translators::AttributesToForm do
     object.stub(:title => nil)
     object.stub(:alt_title => nil)
     object.some.object.needs_translation = true
-    Metadata::Ingest::Translators::AttributesToForm.
-      from(object).
-      using_translator(SingleTranslatorOverride).
-      to(form)
+    translator.using_translator(SingleTranslatorOverride).to(form)
     assoc = form.titles.first
 
     expect(assoc.group).to eq("title")

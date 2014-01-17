@@ -3,9 +3,6 @@ require_relative "../../../support/map.rb"
 
 describe Metadata::Ingest::Translators::FormToAttributes do
   before(:each) do
-    # Set up a translator map
-    setup_map(Metadata::Ingest::Translators::FormToAttributes)
-
     # Use the map to set up form groups
     Metadata::Ingest::Form.internal_groups = translation_map.keys.collect(&:to_s)
 
@@ -39,29 +36,33 @@ describe Metadata::Ingest::Translators::FormToAttributes do
 
   let(:form) { Metadata::Ingest::Form.new(form_attrs) }
 
+  let(:translator) do
+    Metadata::Ingest::Translators::FormToAttributes.from(form).using_map(translation_map)
+  end
+
   it "delegates a form's data to object attributes" do
     expect(@object).to receive(:title=).with("This is a main title")
     expect(@object).to receive(:alt_title=).with(["alt 1", "alt 2"])
     expect(@object).to receive(:photographer=).with("Photographer Name")
     expect(@object).to receive(:subject=).with("subject keyword")
-    Metadata::Ingest::Translators::FormToAttributes.from(form).to(@object)
+    translator.to(@object)
   end
 
   it "delegates deep values" do
     expect(@object.some.object).to receive(:deep_title=).with("deep title test")
-    Metadata::Ingest::Translators::FormToAttributes.from(form).to(@object)
+    translator.to(@object)
   end
 
   it "sets the object to use an internal value when present" do
     int = "http://foo.example.com/ns/102321"
     form_attrs["subjects_attributes"]["14325432"]["internal"] = int
     expect(@object).to receive(:subject=).with(int)
-    Metadata::Ingest::Translators::FormToAttributes.from(form).to(@object)
+    translator.to(@object)
   end
 
   it "doesn't use a blank internal over a non-blank value" do
     form_attrs["subjects_attributes"]["14325432"]["internal"] = ""
     expect(@object).to receive(:subject=).with("subject keyword")
-    Metadata::Ingest::Translators::FormToAttributes.from(form).to(@object)
+    translator.to(@object)
   end
 end
