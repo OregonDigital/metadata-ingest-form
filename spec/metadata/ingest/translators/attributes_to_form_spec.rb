@@ -2,12 +2,7 @@ require 'ostruct'
 require "metadata/ingest/translators/attributes_to_form"
 require_relative "../../../support/map.rb"
 require_relative "../../../support/single_translator_override.rb"
-
-RSpec::Matchers.define :include_association do |group, type, value|
-  match do |associations|
-    associations.include?(Metadata::Ingest::Association.new(group: group, type: type, value: value, internal: nil))
-  end
-end
+require_relative "../../../support/include_association.rb"
 
 describe Metadata::Ingest::Translators::AttributesToForm do
   let(:object) do
