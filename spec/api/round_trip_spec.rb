@@ -7,6 +7,9 @@ describe "round-trip translation" do
   before(:each) do
     setup_map(Metadata::Ingest::Translators::FormToAttributes)
     setup_map(Metadata::Ingest::Translators::AttributesToForm)
+
+    # Use the map to set up form groups
+    Metadata::Ingest::Form.internal_groups = translation_map.keys.collect(&:to_s)
   end
 
   it "should go from an ingest form to object and back to an ingest form properly" do

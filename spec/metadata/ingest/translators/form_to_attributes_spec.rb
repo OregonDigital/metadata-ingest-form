@@ -6,6 +6,9 @@ describe Metadata::Ingest::Translators::FormToAttributes do
     # Set up a translator map
     setup_map(Metadata::Ingest::Translators::FormToAttributes)
 
+    # Use the map to set up form groups
+    Metadata::Ingest::Form.internal_groups = translation_map.keys.collect(&:to_s)
+
     # Make a nice object double with stubs so we know we're expecting exactly what we should
     @object = double("object")
     @object.stub(:title=)

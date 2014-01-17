@@ -18,11 +18,6 @@ module Metadata::Ingest::Translators
         return @map
       end
 
-      # Returns an array of group strings suitable for use in Metadata::Ingest::Form.internal_groups=
-      def form_groups
-        raise InterfaceNotImplementedError.new
-      end
-
       # Returns a translator instance for the given input
       def from(input)
         raise InterfaceNotImplementedError.new

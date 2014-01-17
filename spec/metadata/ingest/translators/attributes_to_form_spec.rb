@@ -29,8 +29,10 @@ describe Metadata::Ingest::Translators::AttributesToForm do
   let(:form) { Metadata::Ingest::Form.new }
 
   before(:each) do
-    # This has WAY too much setup - figure out something better!
     setup_map(Metadata::Ingest::Translators::AttributesToForm)
+
+    # Use the map to set up form groups
+    Metadata::Ingest::Form.internal_groups = translation_map.keys.collect(&:to_s)
   end
 
   it "builds titles" do

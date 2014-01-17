@@ -30,10 +30,6 @@ module Metadata::Ingest::Translators
     attr_accessor :form
 
     class << self
-      def form_groups
-        return @map.keys.collect {|key| key.to_s}
-      end
-
       def from(ingest_form)
         translator = self.new
         translator.form = ingest_form
