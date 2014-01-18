@@ -10,8 +10,8 @@ describe Metadata::Ingest::Form do
 
   describe ".reflect_on_association" do
     it "should return nil" do
-      Metadata::Ingest::Form.reflect_on_association(nil).should be_nil
-      Metadata::Ingest::Form.reflect_on_association(:titles).should be_nil
+      expect(Metadata::Ingest::Form.reflect_on_association(nil)).to be_nil
+      expect(Metadata::Ingest::Form.reflect_on_association(:titles)).to be_nil
     end
   end
 
@@ -20,11 +20,11 @@ describe Metadata::Ingest::Form do
       it "should set up an empty array of titles" do
         form = Metadata::Ingest::Form.new
         form.internal_groups = ["title", "subject"]
-        form.titles.should eq([])
+        expect(form.titles).to eq([])
 
         form = Metadata::Ingest::Form.new(:foo => 1, :bar => 2)
         form.internal_groups = ["title", "subject"]
-        form.titles.should eq([])
+        expect(form.titles).to eq([])
       end
     end
 
@@ -35,23 +35,23 @@ describe Metadata::Ingest::Form do
       end
 
       it "shouldn't call #attributes= at all" do
-        Metadata::Ingest::Form.any_instance.should_not_receive(:attributes=)
+        expect_any_instance_of(Metadata::Ingest::Form).not_to receive(:attributes=)
         Metadata::Ingest::Form.new(nil)
       end
 
       it "should set @data to an empty hash" do
-        @if.instance_variable_get("@data").should eq({})
+        expect(@if.instance_variable_get("@data")).to eq({})
       end
 
       it "should still set up an empty array of titles" do
-        @if.titles.should eq([])
+        expect(@if.titles).to eq([])
       end
     end
 
     context "(when attributes are passed in)" do
       it "should set attributes via #attributes=" do
         attributes = double("titles attributes")
-        Metadata::Ingest::Form.any_instance.should_receive(:attributes=).with(attributes).once
+        expect_any_instance_of(Metadata::Ingest::Form).to receive(:attributes=).with(attributes).once
         Metadata::Ingest::Form.new(attributes)
       end
     end
@@ -75,11 +75,11 @@ describe Metadata::Ingest::Form do
 
       # Paranoid sanity verification - since we use this attribute to prove things work, let's make
       # sure we populated it correctly
-      @associations.collect {|assoc| assoc.group + assoc.value.to_s}.should eq(["a1", "a2", "b1", "b2"])
+      expect(@associations.collect {|assoc| assoc.group + assoc.value.to_s}).to eq(["a1", "a2", "b1", "b2"])
     end
 
     it "should return all associations" do
-      @if.associations.should eq(@associations)
+      expect(@if.associations).to eq(@associations)
     end
 
     it "shouldn't return raw data" do
@@ -87,12 +87,12 @@ describe Metadata::Ingest::Form do
       @if.add_raw_statement(double.as_null_object)
       @if.add_raw_statement(double.as_null_object)
       @if.add_raw_statement(double.as_null_object)
-      @if.associations.should eq(@associations)
+      expect(@if.associations).to eq(@associations)
     end
 
     it "shouldn't be mutable" do
       expect { @if.associations << double.as_null_object }.to raise_error
-      @if.associations.should be_frozen
+      expect(@if.associations).to be_frozen
     end
   end
 
@@ -114,23 +114,23 @@ describe Metadata::Ingest::Form do
     end
 
     it "should create one association for each valid group" do
-      @if.associations.length.should eq(2)
+      expect(@if.associations.length).to eq(2)
     end
 
     it "should expose data for all valid groups" do
-      @if.titles.should include_association("title", "main", "Main title")
-      @if.titles.should include_association("title", "main", "Main title #2")
+      expect(@if.titles).to include_association("title", "main", "Main title")
+      expect(@if.titles).to include_association("title", "main", "Main title #2")
     end
 
     it "should prevent accessing invalid groups' data" do
-      @if.associations.should match_array(@if.titles)
-      @if.associations.should_not include_association("foo", "lcsh", "Blah")
+      expect(@if.associations).to match_array(@if.titles)
+      expect(@if.associations).not_to include_association("foo", "lcsh", "Blah")
     end
 
     it "should expose extra data if the groups are changed to make 'bad' data valid" do
       @if.internal_groups << "foo"
-      @if.associations.length.should eq(3)
-      @if.associations.should include_association("foo", "lcsh", "Blah")
+      expect(@if.associations.length).to eq(3)
+      expect(@if.associations).to include_association("foo", "lcsh", "Blah")
     end
   end
 
@@ -146,30 +146,30 @@ describe Metadata::Ingest::Form do
 
     it "should respond to the dynamic methods" do
       for group in @groups
-        @if.should respond_to(@bulk_assign % group)
-        @if.should respond_to(@builder % group)
-        @if.should respond_to(@getter % group)
+        expect(@if).to respond_to(@bulk_assign % group)
+        expect(@if).to respond_to(@builder % group)
+        expect(@if).to respond_to(@getter % group)
       end
     end
 
     it "should not respond to plural builder (i.e., @if.build_foos is wrong.  @if.build_foo is right)" do
-      @if.should_not respond_to(:build_foos)
+      expect(@if).not_to respond_to(:build_foos)
     end
 
     it "should not respond to singular attributes= (i.e., @if.foo_attributes= is wrong.  @if.foos_attributes= is right)" do
-      @if.should_not respond_to(:foo_attributes=)
+      expect(@if).not_to respond_to(:foo_attributes=)
     end
 
     it "should not respond to singular getter (i.e., @if.foo is wrong.  @if.foos is right)" do
-      @if.should_not respond_to(:foo)
+      expect(@if).not_to respond_to(:foo)
     end
 
     it "should not respond to dynamic methods for invalid groups" do
       @if.stub(:groups).and_return([])
       for group in @groups
-        @if.should_not respond_to(@bulk_assign % group)
-        @if.should_not respond_to(@builder % group)
-        @if.should_not respond_to(@getter % group)
+        expect(@if).not_to respond_to(@bulk_assign % group)
+        expect(@if).not_to respond_to(@builder % group)
+        expect(@if).not_to respond_to(@getter % group)
       end
     end
 
@@ -180,11 +180,11 @@ describe Metadata::Ingest::Form do
       }
       @if.build_foo(:type => "type 2", :value => "value 2", :internal => 2)
       for foo in @if.foos
-        foo.group.should eq("foo")
-        foo.type.should match(/^type \d$/)
+        expect(foo.group).to eq("foo")
+        expect(foo.type).to match(/^type \d$/)
         foo.type =~ /(\d)/
-        foo.value.should eq("value #{$1}")
-        foo.internal.should eq($1.to_i)
+        expect(foo.value).to eq("value #{$1}")
+        expect(foo.internal).to eq($1.to_i)
       end
     end
   end
@@ -202,7 +202,7 @@ describe Metadata::Ingest::Form do
     end
 
     it "should be invalid if any association objects are invalid" do
-      @if.valid?.should eq(false)
+      expect(@if).not_to be_valid
     end
 
     it "should set errors based on association objects' errors" do
@@ -210,18 +210,18 @@ describe Metadata::Ingest::Form do
       @if.valid?
 
       # Each bad item above should generate specific errors on the ingest form object
-      @if.errors[:"title.type"].should_not be_blank
-      @if.errors[:"title.value"].should_not be_blank
-      @if.errors[:"thing.type"].should_not be_blank
-      @if.errors.count.should eq(3)
+      expect(@if.errors[:"title.type"]).not_to be_blank
+      expect(@if.errors[:"title.value"]).not_to be_blank
+      expect(@if.errors[:"thing.type"]).not_to be_blank
+      expect(@if.errors.count).to eq(3)
     end
 
     it "should be valid if all association objects are valid" do
       @if.titles[0].value = "fixed"
       @if.titles[1].type = "fixed"
       @if.things[0].type = "fixed"
-      @if.valid?.should eq(true)
-      @if.errors.count.should eq(0)
+      expect(@if).to be_valid
+      expect(@if.errors.count).to eq(0)
     end
   end
 
@@ -257,24 +257,24 @@ describe Metadata::Ingest::Form do
 
       @if.titles << old_title1
       @if.titles << old_title2
-      @if.titles.should include(old_title1, old_title2)
+      expect(@if.titles).to include(old_title1, old_title2)
 
       @if.titles_attributes = @hash
-      @if.titles.should_not include(old_title1, old_title2)
+      expect(@if.titles).not_to include(old_title1, old_title2)
     end
 
     it "should create a new Metadata::Ingest::Association with each attribute's data" do
-      Metadata::Ingest::Association.should_receive(:new).with(@data1).once.and_return(@it1)
-      Metadata::Ingest::Association.should_receive(:new).with(@data2).once.and_return(@it2)
-      Metadata::Ingest::Association.should_receive(:new).with(@data3).once.and_return(@it3)
+      expect(Metadata::Ingest::Association).to receive(:new).with(@data1).once.and_return(@it1)
+      expect(Metadata::Ingest::Association).to receive(:new).with(@data2).once.and_return(@it2)
+      expect(Metadata::Ingest::Association).to receive(:new).with(@data3).once.and_return(@it3)
 
       @if.titles_attributes = @hash
     end
 
     it "should store the new titles" do
       @if.titles_attributes = @hash
-      @if.titles.length.should eq(3)
-      @if.titles.should include(@it1, @it2, @it3)
+      expect(@if.titles.length).to eq(3)
+      expect(@if.titles).to include(@it1, @it2, @it3)
     end
 
     it "shouldn't use the hash key for anything" do
@@ -287,11 +287,11 @@ describe Metadata::Ingest::Form do
       # consideration prior to making such a change.
 
       @hash[:fizzy] = @hash.delete(:foo)
-      @hash[:foo].should be_nil
+      expect(@hash[:foo]).to be_nil
 
       @if.titles_attributes = @hash
-      @if.titles.length.should eq(3)
-      @if.titles.should include(@it1, @it2, @it3)
+      expect(@if.titles.length).to eq(3)
+      expect(@if.titles).to include(@it1, @it2, @it3)
     end
   end
 
@@ -304,17 +304,17 @@ describe Metadata::Ingest::Form do
     end
 
     it "should create a new Metadata::Ingest::Association with whatever parameters are passed in" do
-      Metadata::Ingest::Association.should_receive(:new).with(@args)
+      expect(Metadata::Ingest::Association).to receive(:new).with(@args)
       @if.build_title(@args)
     end
 
     it "should add the Metadata::Ingest::Association to titles" do
       @if.build_title(@args)
-      @if.titles.should include(@title)
+      expect(@if.titles).to include(@title)
     end
 
     it "should return the created title" do
-      @if.build_title(@args).should eq(@title)
+      expect(@if.build_title(@args)).to eq(@title)
     end
   end
 end

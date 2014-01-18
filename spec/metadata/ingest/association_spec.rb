@@ -7,7 +7,7 @@ describe Metadata::Ingest::Association do
 
   describe ".new" do
     it "should set @type if a :type is passed in" do
-      Metadata::Ingest::Association.new(:type => :main).type.should eq(:main)
+      expect(Metadata::Ingest::Association.new(:type => :main).type).to eq(:main)
     end
 
     it "should work without any arguments" do
@@ -15,11 +15,11 @@ describe Metadata::Ingest::Association do
     end
 
     it "should set @value if a :value is passed in" do
-      Metadata::Ingest::Association.new(:value => "value").value.should eq("value")
+      expect(Metadata::Ingest::Association.new(:value => "value").value).to eq("value")
     end
 
     it "should set @internal if a :internal is passed in" do
-      Metadata::Ingest::Association.new(:internal => "internal").internal.should eq("internal")
+      expect(Metadata::Ingest::Association.new(:internal => "internal").internal).to eq("internal")
     end
   end
 
@@ -33,40 +33,40 @@ describe Metadata::Ingest::Association do
 
     it "should be invalid if @type is set but @value isn't" do
       @association.value = ""
-      @association.should_not be_valid
-      @association.errors[:value].should_not eq([])
-      @association.errors[:type].should eq([])
+      expect(@association).not_to be_valid
+      expect(@association.errors[:value]).not_to eq([])
+      expect(@association.errors[:type]).to eq([])
     end
 
     it "should be invalid if @value is set but type isn't" do
       @association.type = ""
-      @association.should_not be_valid
-      @association.errors[:type].should_not eq([])
-      @association.errors[:value].should eq([])
+      expect(@association).not_to be_valid
+      expect(@association.errors[:type]).not_to eq([])
+      expect(@association.errors[:value]).to eq([])
     end
 
     it "should be valid if both @type and @value are set" do
-      @association.should be_valid
-      @association.errors[:value].should eq([])
-      @association.errors[:type].should eq([])
-      @association.errors.should be_empty
+      expect(@association).to be_valid
+      expect(@association.errors[:value]).to eq([])
+      expect(@association.errors[:type]).to eq([])
+      expect(@association.errors).to be_empty
     end
 
     it "should be valid whether or not internal is set" do
       @association.internal = "foo"
-      @association.should be_valid
+      expect(@association).to be_valid
       @association.internal = ""
-      @association.should be_valid
+      expect(@association).to be_valid
       @association.internal = nil
-      @association.should be_valid
+      expect(@association).to be_valid
     end
 
     it "should be valid if the object is blank" do
       @association.stub(:blank?).and_return true
-      @association.should be_valid
-      @association.errors[:value].should eq([])
-      @association.errors[:type].should eq([])
-      @association.errors.should be_empty
+      expect(@association).to be_valid
+      expect(@association.errors[:value]).to eq([])
+      expect(@association.errors[:type]).to eq([])
+      expect(@association.errors).to be_empty
     end
   end
 
@@ -77,17 +77,17 @@ describe Metadata::Ingest::Association do
     end
 
     it "should return true if @type and @value are blank" do
-      @association.blank?.should eq(true)
+      expect(@association).to be_blank
     end
 
     it "should return false if @type isn't blank" do
       @association.type = "something"
-      @association.blank?.should eq(false)
+      expect(@association).not_to be_blank
     end
 
     it "should return false if @value isn't blank" do
       @association.value = "something"
-      @association.blank?.should eq(false)
+      expect(@association).not_to be_blank
     end
   end
 end
