@@ -4,11 +4,6 @@ require "metadata/ingest/translators/attributes_to_form"
 require_relative "../support/map.rb"
 
 describe "round-trip translation" do
-  before(:each) do
-    # Use the map to set up form groups
-    Metadata::Ingest::Form.internal_groups = translation_map.keys.collect(&:to_s)
-  end
-
   it "should go from an ingest form to object and back to an ingest form properly" do
     form_attrs = {
       "titles_attributes" => {
@@ -25,6 +20,7 @@ describe "round-trip translation" do
       }
     }
     form = Metadata::Ingest::Form.new(form_attrs)
+    form.internal_groups = translation_map.keys.collect(&:to_s)
 
     # This is weird but we have to have a place for the deep title data to go
     object = OpenStruct.new(some: OpenStruct.new(object: OpenStruct.new))
@@ -36,6 +32,7 @@ describe "round-trip translation" do
     expect(object.alt_title).to eql(["alt 1", "alt 2"])
 
     new_form = Metadata::Ingest::Form.new
+    new_form.internal_groups = translation_map.keys.collect(&:to_s)
     Metadata::Ingest::Translators::AttributesToForm.from(object).using_map(translation_map).to(new_form)
 
     for assoc in form.associations
@@ -60,6 +57,7 @@ describe "round-trip translation" do
     )
 
     form = Metadata::Ingest::Form.new
+    form.internal_groups = translation_map.keys.collect(&:to_s)
     Metadata::Ingest::Translators::AttributesToForm.from(object).using_map(translation_map).to(form)
 
     # Sanity check

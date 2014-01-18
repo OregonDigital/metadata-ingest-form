@@ -15,53 +15,6 @@ module Metadata
       validate :children_must_be_valid
 
       class << self
-        # Assigns list of groups for ingest forms to use.  Please note:
-        # - This should only be set ONCE unless you REALLY know what you're doing
-        # - The groups should be strings, not symbols
-        # - Groups should be singular - "title", not "titles" - in order to work with the magic in
-        #   the dynamic_method_map function.
-        def internal_groups=(val)
-          @internal_groups = val
-        end
-
-        def internal_groups
-          @internal_groups ||= []
-          return @internal_groups
-        end
-
-        def groups
-          return internal_groups + ["unmapped_association"]
-        end
-
-        def valid_group?(group)
-          return groups.include?(group)
-        end
-
-        # Helps us manage the two places we need to expose our dynamic methods.  Returns the method
-        # name and arguments to pass it, suitable for a send call, if the dynamic method name is
-        # valid.  Returns false on method names not handled.
-        def dynamic_method_map(method, *args)
-          if method.to_s =~ /^build_(.*)$/
-            group = $1
-            return false if !valid_group?(group)
-            return [:_build_group, group, args.first || {}]
-          end
-
-          if method.to_s =~ /^(.*)_attributes=$/
-            group = $1.singularize
-            return false if group.pluralize != $1
-            return false if !valid_group?(group)
-            return [:_build_groups, group, args.first || {}]
-          end
-
-          group = method.to_s.singularize
-          if valid_group?(group) && group.pluralize == method.to_s
-            return [:_get_group, group]
-          end
-
-          return false
-        end
-
         # This makes our object work better with various gems, particularly cocoon.  This probably
         # doesn't belong here, but I know this is necessary within the context of the whole project.
         #
@@ -80,6 +33,53 @@ module Metadata
         self.attributes = attr if attr
       end
 
+      # Assigns list of groups for ingest forms to use.  Please note:
+      # - This should only be set ONCE unless you REALLY know what you're doing
+      # - The groups should be strings, not symbols
+      # - Groups should be singular - "title", not "titles" - in order to work with the magic in
+      #   the dynamic_method_map function.
+      def internal_groups=(val)
+        @internal_groups = val
+      end
+
+      def internal_groups
+        @internal_groups ||= []
+        return @internal_groups
+      end
+
+      def groups
+        return internal_groups + ["unmapped_association"]
+      end
+
+      def valid_group?(group)
+        return groups.include?(group)
+      end
+
+      # Helps us manage the two places we need to expose our dynamic methods.  Returns the method
+      # name and arguments to pass it, suitable for a send call, if the dynamic method name is
+      # valid.  Returns false on method names not handled.
+      def dynamic_method_map(method, *args)
+        if method.to_s =~ /^build_(.*)$/
+          group = $1
+          return false if !valid_group?(group)
+          return [:_build_group, group, args.first || {}]
+        end
+
+        if method.to_s =~ /^(.*)_attributes=$/
+          group = $1.singularize
+          return false if group.pluralize != $1
+          return false if !valid_group?(group)
+          return [:_build_groups, group, args.first || {}]
+        end
+
+        group = method.to_s.singularize
+        if valid_group?(group) && group.pluralize == method.to_s
+          return [:_get_group, group]
+        end
+
+        return false
+      end
+
       def attributes=(attributes = {})
         # Check for unknown data
         @raw_statements = attributes.delete("raw_statements") if attributes["raw_statements"]
@@ -95,12 +95,12 @@ module Metadata
       # If we don't appear to respond to a method, check the dynamic method map data before really
       # reporting false
       def respond_to?(method, include_private = false)
-        return super || !!self.class.dynamic_method_map(method)
+        return super || !!dynamic_method_map(method)
       end
 
       def method_missing(method, *args)
         # Check for dynamic method responding magic
-        method_info = self.class.dynamic_method_map(method, *args)
+        method_info = dynamic_method_map(method, *args)
         return super unless method_info
 
         return self.send(*method_info)
@@ -136,7 +136,7 @@ module Metadata
       # Iterates over all valid groups' associations, returning an array
       def associations
         objs = []
-        for group in self.class.groups
+        for group in groups
           for item in _get_group(group)
             objs.push(item)
           end

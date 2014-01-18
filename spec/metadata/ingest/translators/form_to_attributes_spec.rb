@@ -3,9 +3,6 @@ require_relative "../../../support/map.rb"
 
 describe Metadata::Ingest::Translators::FormToAttributes do
   before(:each) do
-    # Use the map to set up form groups
-    Metadata::Ingest::Form.internal_groups = translation_map.keys.collect(&:to_s)
-
     # Make a nice object double with stubs so we know we're expecting exactly what we should
     @object = double("object")
     @object.stub(:title=)
@@ -34,7 +31,11 @@ describe Metadata::Ingest::Translators::FormToAttributes do
     }
   end
 
-  let(:form) { Metadata::Ingest::Form.new(form_attrs) }
+  let(:form) {
+    f = Metadata::Ingest::Form.new(form_attrs)
+    f.internal_groups = translation_map.keys.collect(&:to_s)
+    f
+  }
 
   let(:translator) do
     Metadata::Ingest::Translators::FormToAttributes.from(form).using_map(translation_map)

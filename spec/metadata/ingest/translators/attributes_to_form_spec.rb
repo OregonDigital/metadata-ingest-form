@@ -21,16 +21,15 @@ describe Metadata::Ingest::Translators::AttributesToForm do
     )
   end
 
-  let(:form) { Metadata::Ingest::Form.new }
+  let(:form) {
+    f = Metadata::Ingest::Form.new
+    f.internal_groups = translation_map.keys.collect(&:to_s)
+    f
+  }
 
   let(:translator) {
     Metadata::Ingest::Translators::AttributesToForm.from(object).using_map(translation_map)
   }
-
-  before(:each) do
-    # Use the map to set up form groups
-    Metadata::Ingest::Form.internal_groups = translation_map.keys.collect(&:to_s)
-  end
 
   it "builds titles" do
     translator.to(form)
