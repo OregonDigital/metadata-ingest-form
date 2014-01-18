@@ -8,25 +8,18 @@ module Metadata::Ingest::Translators
   # someday for factory-ifying things, but at a minimum sticking to this ensures consistency.
   class Base
     class << self
-      # Some kind of structure should go here to define groups, types, and how that translates
-      # between the ingest form and whatever other object is being handled.
-      def map=(val)
-        @map = val
-      end
-
-      def map
-        return @map
-      end
-
-      # Returns an array of group strings suitable for use in Metadata::Ingest::Form.internal_groups=
-      def form_groups
-        raise InterfaceNotImplementedError.new
-      end
-
       # Returns a translator instance for the given input
       def from(input)
         raise InterfaceNotImplementedError.new
       end
+    end
+
+    # Sets the translation map, which should be some kind of structure to
+    # define groups, types, and how that translates between the ingest form and
+    # whatever other object is being handled.
+    def using_map(map)
+      @map = map
+      return self
     end
 
     # Translates the input object and sets translated data on the output object

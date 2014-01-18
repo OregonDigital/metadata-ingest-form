@@ -1,10 +1,11 @@
 require "metadata/ingest/form"
 require "ostruct"
+require_relative "../../support/include_association.rb"
 
 describe Metadata::Ingest::Form do
   before(:each) do
     @if = Metadata::Ingest::Form.new
-    Metadata::Ingest::Form.internal_groups = ["title", "subject"]
+    @if.internal_groups = ["title", "subject"]
   end
 
   describe ".reflect_on_association" do
@@ -17,14 +18,20 @@ describe Metadata::Ingest::Form do
   describe ".new" do
     context "(when no attributes are passed in)" do
       it "should set up an empty array of titles" do
-        Metadata::Ingest::Form.new.titles.should eq([])
-        Metadata::Ingest::Form.new(:foo => 1, :bar => 2).titles.should eq([])
+        form = Metadata::Ingest::Form.new
+        form.internal_groups = ["title", "subject"]
+        form.titles.should eq([])
+
+        form = Metadata::Ingest::Form.new(:foo => 1, :bar => 2)
+        form.internal_groups = ["title", "subject"]
+        form.titles.should eq([])
       end
     end
 
     context "(when nil is passed in)" do
       before(:each) do
         @if = Metadata::Ingest::Form.new(nil)
+        @if.internal_groups = ["title", "subject"]
       end
 
       it "shouldn't call #attributes= at all" do
@@ -52,9 +59,8 @@ describe Metadata::Ingest::Form do
 
   describe "#associations" do
     before(:each) do
-      @if = Metadata::Ingest::Form.new
       @groups = ["a", "b"]
-      Metadata::Ingest::Form.stub(:groups).and_return(@groups)
+      @if.stub(:groups).and_return(@groups)
 
       @associations = []
       for group in @groups
@@ -91,54 +97,47 @@ describe Metadata::Ingest::Form do
   end
 
   describe "#attributes=" do
-    it "shouldn't set nested data if no nested attributes are passed in" do
-      @if.should_not_receive(:titles_attributes=)
-      @if.attributes = {}
+    let(:attributes) do
+      {
+        "titles_attributes" => {
+          "1" => {"type" => "main", "value" => "Main title"},
+          "2" => {"type" => "main", "value" => "Main title #2"}
+        },
+        "foos_attributes" => {
+          "1" => {"type" => "lcsh", "value" => "Blah"},
+        }
+      }
     end
 
-    it "should set valid groups' attributes" do
-      Metadata::Ingest::Form.stub(:groups).and_return(["titles", "subjects"])
-      test_groups = Metadata::Ingest::Form.groups + ["foos"]
-      attrs = {}
-      doubles = {}
-
-      for group in test_groups
-        doubles[group] = double(group + " attributes")
-        attrs[group + "_attributes"] = doubles[group]
-
-        if Metadata::Ingest::Form.valid_group?(group)
-          @if.should_receive(:"#{group}_attributes=").with(doubles[group]).once
-        else
-          @if.should_not_receive(:"#{group}_attributes=")
-        end
-      end
-
-      @if.attributes = attrs
+    before(:each) do
+      @if.attributes = attributes
     end
 
-    it "should no longer be empty if any group is set" do
-      Metadata::Ingest::Form.stub(:groups).and_return(["foo"])
-      attrs = { "foos_attributes" => {1 => {"type" => :main, "value" => "foo"}} }
-
-      @if.should be_empty
-      @if.attributes = attrs
-      @if.should_not be_empty
+    it "should create one association for each valid group" do
+      @if.associations.length.should eq(2)
     end
 
-    it "should still be empty if no groups are set" do
-      Metadata::Ingest::Form.stub(:groups).and_return(["bar"])
-      attrs = { "foos_attributes" => {1 => {"type" => :main, "value" => "foo"}} }
+    it "should expose data for all valid groups" do
+      @if.titles.should include_association("title", "main", "Main title")
+      @if.titles.should include_association("title", "main", "Main title #2")
+    end
 
-      @if.should be_empty
-      @if.attributes = attrs
-      @if.should be_empty
+    it "should prevent accessing invalid groups' data" do
+      @if.associations.should match_array(@if.titles)
+      @if.associations.should_not include_association("foo", "lcsh", "Blah")
+    end
+
+    it "should expose extra data if the groups are changed to make 'bad' data valid" do
+      @if.internal_groups << "foo"
+      @if.associations.length.should eq(3)
+      @if.associations.should include_association("foo", "lcsh", "Blah")
     end
   end
 
   describe "dynamic method system" do
     before(:each) do
       @groups = ["foo", "bar"]
-      Metadata::Ingest::Form.stub(:groups).and_return(@groups)
+      @if.stub(:groups).and_return(@groups)
 
       @bulk_assign = "%ss_attributes="
       @builder = "build_%s"
@@ -166,7 +165,7 @@ describe Metadata::Ingest::Form do
     end
 
     it "should not respond to dynamic methods for invalid groups" do
-      Metadata::Ingest::Form.stub(:groups).and_return([])
+      @if.stub(:groups).and_return([])
       for group in @groups
         @if.should_not respond_to(@bulk_assign % group)
         @if.should_not respond_to(@builder % group)
@@ -194,7 +193,7 @@ describe Metadata::Ingest::Form do
     before(:each) do
       # Set up fake group
       @valid_groups = ["title", "thing"]
-      Metadata::Ingest::Form.stub(:groups).and_return(@valid_groups)
+      @if.stub(:groups).and_return(@valid_groups)
 
       # Build some bad data
       @if.build_title(:type => "foo")

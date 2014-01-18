@@ -4,11 +4,6 @@ require "metadata/ingest/translators/attributes_to_form"
 require_relative "../support/map.rb"
 
 describe "round-trip translation" do
-  before(:each) do
-    setup_map(Metadata::Ingest::Translators::FormToAttributes)
-    setup_map(Metadata::Ingest::Translators::AttributesToForm)
-  end
-
   it "should go from an ingest form to object and back to an ingest form properly" do
     form_attrs = {
       "titles_attributes" => {
@@ -25,18 +20,20 @@ describe "round-trip translation" do
       }
     }
     form = Metadata::Ingest::Form.new(form_attrs)
+    form.internal_groups = translation_map.keys.collect(&:to_s)
 
     # This is weird but we have to have a place for the deep title data to go
     object = OpenStruct.new(some: OpenStruct.new(object: OpenStruct.new))
 
-    Metadata::Ingest::Translators::FormToAttributes.from(form).to(object)
+    Metadata::Ingest::Translators::FormToAttributes.from(form).using_map(translation_map).to(object)
 
     # Sanity check
     expect(object.some.object.deep_title).to eql("deep title test")
     expect(object.alt_title).to eql(["alt 1", "alt 2"])
 
     new_form = Metadata::Ingest::Form.new
-    Metadata::Ingest::Translators::AttributesToForm.from(object).to(new_form)
+    new_form.internal_groups = translation_map.keys.collect(&:to_s)
+    Metadata::Ingest::Translators::AttributesToForm.from(object).using_map(translation_map).to(new_form)
 
     for assoc in form.associations
       expect(new_form.associations).to include(assoc)
@@ -60,7 +57,8 @@ describe "round-trip translation" do
     )
 
     form = Metadata::Ingest::Form.new
-    Metadata::Ingest::Translators::AttributesToForm.from(object).to(form)
+    form.internal_groups = translation_map.keys.collect(&:to_s)
+    Metadata::Ingest::Translators::AttributesToForm.from(object).using_map(translation_map).to(form)
 
     # Sanity check
     expected_subject = Metadata::Ingest::Association.new(
@@ -74,7 +72,7 @@ describe "round-trip translation" do
     # This is weird but we have to have a place for the deep title data to go
     new_object = OpenStruct.new(some: OpenStruct.new(object: OpenStruct.new))
 
-    Metadata::Ingest::Translators::FormToAttributes.from(form).to(new_object)
+    Metadata::Ingest::Translators::FormToAttributes.from(form).using_map(translation_map).to(new_object)
 
     expect(new_object).to eq(object)
   end
