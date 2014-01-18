@@ -80,6 +80,10 @@ module Metadata
         return false
       end
 
+      # Sets internal Metadata::Ingest::Association objects for all attributes found that match
+      # the pattern "*_attributes".  The normal getter methods will only look for valid groups,
+      # ensuring some sanity here.  We allow for anything to be set since valid groups are dynamic
+      # per instance, and aren't necessarily set before this call (e.g., if `.new` is called).
       def attributes=(attributes = {})
         # Check for unknown data
         @raw_statements = attributes.delete("raw_statements") if attributes["raw_statements"]
