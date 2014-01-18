@@ -114,6 +114,8 @@ module Metadata
       def _build_group(group, attrs)
         @empty = false
         attrs.symbolize_keys!
+        return if attrs[:_destroy] == "1"
+
         attrs[:group] = group
         obj = Ingest::Association.new(attrs)
         _get_group(group) << obj
