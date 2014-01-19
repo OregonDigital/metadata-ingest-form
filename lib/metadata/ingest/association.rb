@@ -31,7 +31,7 @@ module Metadata
     class Association < FormBacker
       include ActiveModel::Validations
 
-      attr_accessor :type, :value, :group, :internal
+      attr_accessor :type, :value, :group, :internal, :persisted
 
       validate :must_have_type_and_value
 
@@ -55,6 +55,10 @@ module Metadata
 
         errors.add(:type, "cannot be blank") if @type.blank?
         errors.add(:value, "cannot be blank") if @value.blank?
+      end
+
+      def persisted?
+        return @persisted
       end
 
       # Allow equivalent objects to be considered equal

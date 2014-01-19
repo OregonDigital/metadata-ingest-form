@@ -53,6 +53,10 @@ class SingleAttributeTranslator
       value: value
     )
 
+    # Since the associations are fake, we just set persistence to the parent
+    # object's value
+    association.persisted = @source.persisted?
+
     return association
   end
 end

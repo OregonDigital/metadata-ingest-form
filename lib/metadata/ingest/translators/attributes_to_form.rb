@@ -54,6 +54,7 @@ module Metadata::Ingest::Translators
     # Converts @source to an ingest form
     def to(form)
       @form = form
+      @form.id = source.id
       for group, type_attr_map in @map
         for type, attr_definition in type_attr_map
           setup_form(group, type, attr_definition)
