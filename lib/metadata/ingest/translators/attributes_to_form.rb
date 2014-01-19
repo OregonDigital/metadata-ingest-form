@@ -32,7 +32,7 @@ module Metadata::Ingest::Translators
     attr_writer :single_attribute_translator
 
     class << self
-      def from(source, single_attribute_translator = nil)
+      def from(source)
         translator = self.new
         translator.source = source
         return translator
@@ -54,6 +54,7 @@ module Metadata::Ingest::Translators
     # Converts @source to an ingest form
     def to(form)
       @form = form
+      @form.id = source.id
       for group, type_attr_map in @map
         for type, attr_definition in type_attr_map
           setup_form(group, type, attr_definition)

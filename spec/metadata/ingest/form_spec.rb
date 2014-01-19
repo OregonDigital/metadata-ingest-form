@@ -132,6 +132,27 @@ describe Metadata::Ingest::Form do
       expect(@if.associations.length).to eq(3)
       expect(@if.associations).to include_association("foo", "lcsh", "Blah")
     end
+
+    context "(when '_destroy' is present)" do
+      it "should flag items for deletion that have the _destroy flag set to '1'" do
+        attributes["titles_attributes"]["1"]["_destroy"] = "1"
+        @if.attributes = attributes
+        t1 = @if.associations[0]
+        t2 = @if.associations[1]
+        expect(t1.value).to eq("Main title")
+        expect(t2.value).to eq("Main title #2")
+        expect(t1.marked_for_destruction?).to be_true
+        expect(t2.marked_for_destruction?).to be_false
+      end
+
+      it "should act as it always does if _destroy is set to 'false'" do
+        attributes["titles_attributes"]["1"]["_destroy"] = "false"
+        @if.attributes = attributes
+        expect(@if.associations.length).to eq(2)
+        expect(@if.titles).to include_association("title", "main", "Main title")
+        expect(@if.titles).to include_association("title", "main", "Main title #2")
+      end
+    end
   end
 
   describe "dynamic method system" do

@@ -31,7 +31,7 @@ module Metadata
     class Association < FormBacker
       include ActiveModel::Validations
 
-      attr_accessor :type, :value, :group, :internal
+      attr_accessor :type, :value, :group, :internal, :persisted
 
       validate :must_have_type_and_value
 
@@ -40,6 +40,16 @@ module Metadata
         @type = args[:type]
         @value = args[:value]
         @internal = args[:internal]
+        @destroy = "1" == args[:_destroy]
+      end
+
+      # Marks this as being destroyed - in the UI, the user has to have a way
+      # to remove an association, and the previous approach of naively just
+      # removing data from the ingest form causes what should have been an
+      # obvious problem: the form represents nothing, and so the translation
+      # process isn't aware that items need to be specifically deleted.
+      def destroy!
+        @destroy = true
       end
 
       # True if both type and value are empty.  In that state, the object represents a placeholder for
@@ -57,6 +67,10 @@ module Metadata
         errors.add(:value, "cannot be blank") if @value.blank?
       end
 
+      def persisted?
+        return @persisted
+      end
+
       # Allow equivalent objects to be considered equal
       def ==(other)
         for field in [:group, :type, :value, :internal]
@@ -65,14 +79,15 @@ module Metadata
         return true
       end
 
-      # Returns false to conform to ActiveRecord-like specs.  States that this "record" is not
-      # going to be destroyed when the parent (ingest form) is saved.
+      # Returns whether or not this record should be destroyed when the parent
+      # (ingest form) is "saved".  This method can be used by translator
+      # classes, and is necessary to conform to ActiveRecord-like specs.
       def marked_for_destruction?
-        return false
+        return @destroy
       end
 
-      # This API is also used to conform to AR specs.  Always returns marked_for_destruction since
-      # that's what AR does.
+      # This API is also used to conform to AR specs.  Always returns
+      # marked_for_destruction since that's what AR does.
       def _destroy
         return marked_for_destruction?
       end
