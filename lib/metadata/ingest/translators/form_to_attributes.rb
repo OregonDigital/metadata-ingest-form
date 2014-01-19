@@ -66,6 +66,15 @@ module Metadata::Ingest::Translators
       attribute = group_data[assoc.type.to_sym]
       return unless attribute
 
+      # Make sure we properly handle destroyed values by forcing them to nil.
+      # We keep their state up to this point (and avoid modifying the "live"
+      # object) because the user may be using the prior value for something.
+      if assoc.marked_for_destruction?
+        assoc = assoc.dup
+        assoc.internal = nil
+        assoc.value = nil
+      end
+
       # This is necessary for web forms where "internal" => "" is a very
       # expected situation we have to handle.  I'm not sure there are valid
       # situations where an internal value of "" is actually worthy of
@@ -79,6 +88,12 @@ module Metadata::Ingest::Translators
     # old value is put into an array with the new value.
     def store_attribute_value(attribute, value)
       current = @attributes[attribute]
+
+      # If there's already a value, we can safely ignore nils - there is
+      # currently no use case for storing a nil object alongside valid data.  A
+      # value of nil just means the item was marked for destruction, and needs
+      # to be set to nil if no other values are present.
+      return if current && value.nil?
 
       case current
         when nil    then @attributes[attribute] = value

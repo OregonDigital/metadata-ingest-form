@@ -66,4 +66,22 @@ describe Metadata::Ingest::Translators::FormToAttributes do
     expect(@object).to receive(:subject=).with("subject keyword")
     translator.to(@object)
   end
+
+  context "(when an alternate title is destroyed)" do
+    before(:each) do
+      # Mark the first alt title for destruction
+      form_attrs["titles_attributes"]["2"]["_destroy"] = "1"
+    end
+
+    it "should set non-destroyed data, effectively ignored the destroyed item" do
+      expect(@object).to receive(:alt_title=).with("alt 2")
+      translator.to(@object)
+    end
+
+    it "should call `obj.alt_title = nil` if both items are destroyed" do
+      form_attrs["titles_attributes"]["3"]["_destroy"] = "1"
+      expect(@object).to receive(:alt_title=).with(nil)
+      translator.to(@object)
+    end
+  end
 end
