@@ -150,6 +150,13 @@ The form data comes in looking something like this:
 }
 ```
 
+This should look fairly typical for a Rails form.  Depending on how you set the
+form up, and what magic you do in the form, you may also see the "_destroy"
+attribute.  If this is set to "1", it directs attribute reading in the ingest
+form to mark the entry as destroyed.  Destroyed items are still retrievable,
+but the translator can use this information to properly store the object's new
+state (more on this below).
+
 #### Translation into asset data
 
 If you use the basic translator, it requires some setup - this could be in the
@@ -214,6 +221,55 @@ is similar to this:
 ```ruby
 asset.some_object.attribute = "testing"
 ```
+
+#### The `_destroy` flag
+
+The built-in translator will handle destroyed "associations" in a fairly naive
+way, but it should suffice for most use cases.
+
+If an item is marked for destruction (you can do this via `"_destroy" => "1"`
+in the form), one of two things will happen when the translator converts the
+data from the form to an object:
+
+* If no other items exist for the same attribute, the attribute is set to nil
+* If other items exist (and aren't destroyed themselves), the destroyed data is
+  simply ignored
+
+For example:
+
+```ruby
+# Set up initial state
+test.build_title(type: "main", value: "title")
+test.build_title(type: "alt", value: "alt title")
+test.build_subject(type: "something", value: "subject")
+
+# ... form-to-attributes is run, storing titles and subject on the asset
+# ... time passes
+# ... A fortnight later, a user decides to edit the asset
+# ... attributes-to-form is run, the user makes changes and submits
+
+# Form data comes in to delete the alternate title and change the main
+test.attributes = {
+  "titles_attributes"=>{
+    "0"=>{"type"=>"title", "value"=>"Only One!"},
+    "1"=>{"type"=>"alt", "value"=>"alt title", "_destroy" => "1"}
+  }
+}
+
+# ... form-to-attributes translator runs again
+```
+
+Upon translation, the state of the object will have changed in exactly two
+ways, equivalent to having run the following code:
+
+```ruby
+asset.main_title = "Only One!"
+asset.alt_title = nil
+```
+
+Since subjects weren't in the attributes hash, nothing is changed even though the original form
+object had that data.  This approach ensures unmapped data isn't touched, while allowing for the
+removal of items which a user marks for deletion.
 
 #### Translator in the controller
 
