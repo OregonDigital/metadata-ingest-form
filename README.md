@@ -21,10 +21,7 @@ into libraries vs. having to live back in the application itself.
 
 Add this line to your application's Gemfile:
 
-    gem 'metadata-ingest-form', :git => "git://github.com/OregonDigital/metadata-ingest-form.git"
-
-(Eventually this will be a real gem and you can drop the `:git` repository
-link)
+    gem 'metadata-ingest-form'
 
 And then execute:
 
