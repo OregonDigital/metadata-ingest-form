@@ -47,6 +47,15 @@ module Metadata
         return @internal_groups
       end
 
+      def association_class
+        @association_class ||= Ingest::Association
+        return @association_class
+      end
+
+      def association_class=(klass)
+        @association_class = klass
+      end
+
       def groups
         return internal_groups + ["unmapped_association"]
       end
@@ -96,6 +105,10 @@ module Metadata
         end
       end
 
+      def create_association(attrs = {})
+        return association_class.new(attrs)
+      end
+
       # If we don't appear to respond to a method, check the dynamic method map data before really
       # reporting false
       def respond_to?(method, include_private = false)
@@ -110,13 +123,13 @@ module Metadata
         return self.send(*method_info)
       end
 
-      # Builds an Ingest::Association object and appends it to the array in @data[group]
+      # Builds an association object and appends it to the array in @data[group]
       def _build_group(group, attrs)
         @empty = false
         attrs.symbolize_keys!
 
         attrs[:group] = group
-        obj = Ingest::Association.new(attrs)
+        obj = create_association(attrs)
         _get_group(group) << obj
         return obj
       end

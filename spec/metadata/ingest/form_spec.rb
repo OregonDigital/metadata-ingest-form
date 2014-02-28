@@ -338,4 +338,15 @@ describe Metadata::Ingest::Form do
       expect(@if.build_title(@args)).to eq(@title)
     end
   end
+
+  context "(dependency injection)" do
+    it "should use a custom association class if set" do
+      args = {:value => "Args for a title", :type => :main}
+      fake_class = double(:association_class)
+      @if.association_class = fake_class
+
+      expect(fake_class).to receive(:new).with(args)
+      @if.build_title(args)
+    end
+  end
 end
