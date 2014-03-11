@@ -68,6 +68,17 @@ describe Metadata::Ingest::Association do
       expect(@association.errors[:type]).to eq([])
       expect(@association.errors).to be_empty
     end
+
+    it "should be invalid if manual_errors are set" do
+      @association.manual_errors.add(:foo, "bar")
+      expect(@association).not_to be_valid
+    end
+
+    it "should copy manual errors to the error hash" do
+      @association.manual_errors.add(:foo, "bar")
+      @association.valid?
+      expect(@association.errors[:foo]).to eq(["bar"])
+    end
   end
 
   describe "#blank?" do

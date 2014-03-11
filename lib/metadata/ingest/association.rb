@@ -31,9 +31,10 @@ module Metadata
     class Association < FormBacker
       include ActiveModel::Validations
 
-      attr_accessor :type, :value, :group, :internal, :persisted
+      attr_accessor :type, :value, :group, :internal, :persisted, :manual_errors
 
       validate :must_have_type_and_value
+      validate :must_not_have_manual_errors
 
       def initialize(args = {})
         @group = args[:group]
@@ -41,6 +42,7 @@ module Metadata
         @value = args[:value]
         @internal = args[:internal]
         @destroy = "1" == args[:_destroy]
+        @manual_errors = ActiveModel::Errors.new(self)
       end
 
       # Marks this as being destroyed - in the UI, the user has to have a way
@@ -65,6 +67,24 @@ module Metadata
 
         errors.add(:type, "cannot be blank") if @type.blank?
         errors.add(:value, "cannot be blank") if @value.blank?
+      end
+
+      # Since association and delegated object's attributes are completely
+      # separate, we need a way to say that a given association is invalid from
+      # an external source, such as the translator.  This ensures we can
+      # properly display errors on a form without tightly coupling the form and
+      # the delegated asset.
+      #
+      # This is unfortunately necessary to be a separate validity check as
+      # calls to `valid?` automatically empty the errors object.  i.e., caller
+      # can't just set `association.errors.add(attr, msg)` and then check
+      # `valid?` in a controller or something.
+      def must_not_have_manual_errors
+        return if manual_errors.empty?
+
+        for attr, msg in manual_errors
+          errors.add(attr, msg)
+        end
       end
 
       def persisted?
