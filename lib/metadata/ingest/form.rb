@@ -48,7 +48,7 @@ module Metadata
       end
 
       def association_class
-        @association_class ||= Ingest::Association
+        @association_class ||= Metadata::Ingest::Association
         return @association_class
       end
 
