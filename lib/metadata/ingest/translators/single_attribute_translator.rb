@@ -47,7 +47,7 @@ class SingleAttributeTranslator
 
   # Builds a single association with the given data
   def build_association(value)
-    association = Metadata::Ingest::Association.new(
+    association = @form.create_association(
       group: @group.to_s,
       type: @type.to_s,
       value: value

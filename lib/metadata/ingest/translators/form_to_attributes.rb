@@ -76,7 +76,7 @@ module Metadata::Ingest::Translators
       # empty association.  We keep their state up to this point because the
       # caller may be using the prior value for something.
       if assoc.marked_for_destruction?
-        assoc = Metadata::Ingest::Association.new
+        assoc = @form.create_association
       end
 
       add_association_to_attribute_map(attribute, assoc)
