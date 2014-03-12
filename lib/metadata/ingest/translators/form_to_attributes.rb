@@ -23,9 +23,7 @@ module Metadata::Ingest::Translators
   # sent as-is, whereas an array of objects is sent if there are multiple values for the same group
   # and type combination.
   #
-  # Attributes on the form that are not mapped end up being ignored.  As such, there is no use here
-  # of raw statements or unmapped association types - given those will be read-only on the form
-  # anyway, it wouldn't make sense to assign them here.
+  # Attributes on the form that are not mapped end up being ignored.
   class FormToAttributes < Base
     attr_accessor :form
 

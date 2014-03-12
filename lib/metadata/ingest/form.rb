@@ -6,10 +6,6 @@ module Metadata
   module Ingest
     # Form-backing object for ingesting generic data
     class Form < FormBacker
-      # Container for raw RDF data stored as an array of hashes for easy use on forms (currently used
-      # for statements which didn't match the digital object's subject)
-      attr_reader :raw_statements
-
       include ActiveModel::Validations
 
       validate :children_must_be_valid
@@ -27,7 +23,6 @@ module Metadata
       end
 
       def initialize(attr = {})
-        @raw_statements = []
         @data = {}
         @empty = true
         self.attributes = attr if attr
@@ -57,7 +52,7 @@ module Metadata
       end
 
       def groups
-        return internal_groups + ["unmapped_association"]
+        return internal_groups
       end
 
       def valid_group?(group)
@@ -94,9 +89,6 @@ module Metadata
       # ensuring some sanity here.  We allow for anything to be set since valid groups are dynamic
       # per instance, and aren't necessarily set before this call (e.g., if `.new` is called).
       def attributes=(attributes = {})
-        # Check for unknown data
-        @raw_statements = attributes.delete("raw_statements") if attributes["raw_statements"]
-
         # Check for *_attributes keys for building groups
         for attr, values in attributes
           if attr =~ /\A(\w+)_attributes\Z/
@@ -169,16 +161,6 @@ module Metadata
         @empty = false
         _get_group(assoc.group) << assoc
         return assoc
-      end
-
-      # Attaches the given raw statement data to the list of unknown raw statement data.  `statement`
-      # is expected to act like RDF::Statement - responds to #subject, #predicate, and #object.
-      def add_raw_statement(statement)
-        @raw_statements.push({
-          :subject    => statement.subject.to_s,
-          :predicate  => statement.predicate.to_s,
-          :object     => statement.object.to_s
-        })
       end
 
       # Returns a boolean representing whether the object is empty or not.  An object that's never had

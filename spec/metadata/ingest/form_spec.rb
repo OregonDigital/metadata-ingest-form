@@ -82,14 +82,6 @@ describe Metadata::Ingest::Form do
       expect(@if.associations).to eq(@associations)
     end
 
-    it "shouldn't return raw data" do
-      @if.add_raw_statement(double.as_null_object)
-      @if.add_raw_statement(double.as_null_object)
-      @if.add_raw_statement(double.as_null_object)
-      @if.add_raw_statement(double.as_null_object)
-      expect(@if.associations).to eq(@associations)
-    end
-
     it "shouldn't be mutable" do
       expect { @if.associations << double.as_null_object }.to raise_error
       expect(@if.associations).to be_frozen

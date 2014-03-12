@@ -80,19 +80,6 @@ setting Metadata::Ingest::Association data.  For the "title" group, for instance
 It is generally recommended that `internal_groups` be set only once for an
 instance, but this isn't enforced through code.
 
-#### About unmapped and raw data
-
-The system also includes its own group, `unmapped_association`, for storing
-data that doesn't map to a translateable value.  This is a remnant from the old
-system and might go away - it was previously used when an RDF statement matched
-the subject of the asset, but the predicate wasn't something we handled on the
-form.  This allowed us to write RDF manually without losing the "unknown"
-elements.
-
-`@raw_statements` served a similar purpose, but was specific to RDF statements
-not related to the subject of the asset.  Its future in the system is also not
-certain.
-
 ### Within the Rails stack
 
 #### Form
