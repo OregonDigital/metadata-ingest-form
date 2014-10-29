@@ -8,7 +8,7 @@ module Metadata
     class Form < FormBacker
       include ActiveModel::Validations
 
-      validate :children_must_be_valid
+      validate :associations_must_be_valid
 
       class << self
         # This makes our object work better with various gems, particularly cocoon.  This probably
@@ -170,8 +170,9 @@ module Metadata
         return !!@empty
       end
 
-      # Validates children, carrying their errors up so this object isn't valid if children aren't
-      def children_must_be_valid
+      # Validates associations, carrying their errors up so this object isn't valid if its
+      # associations aren't
+      def associations_must_be_valid
         for obj in associations
           next if obj.valid?
           obj.errors.each do |attr, msg|
