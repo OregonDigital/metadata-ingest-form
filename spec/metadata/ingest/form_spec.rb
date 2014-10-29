@@ -133,8 +133,8 @@ describe Metadata::Ingest::Form do
         t2 = @if.associations[1]
         expect(t1.value).to eq("Main title")
         expect(t2.value).to eq("Main title #2")
-        expect(t1.marked_for_destruction?).to be_true
-        expect(t2.marked_for_destruction?).to be_false
+        expect(t1.marked_for_destruction?).to be_truthy
+        expect(t2.marked_for_destruction?).to be_falsey
       end
 
       it "should act as it always does if _destroy is set to 'false'" do
