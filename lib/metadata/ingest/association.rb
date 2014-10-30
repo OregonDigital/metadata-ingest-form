@@ -45,15 +45,6 @@ module Metadata
         @manual_errors = ActiveModel::Errors.new(self)
       end
 
-      # Marks this as being destroyed - in the UI, the user has to have a way
-      # to remove an association, and the previous approach of naively just
-      # removing data from the ingest form causes what should have been an
-      # obvious problem: the form represents nothing, and so the translation
-      # process isn't aware that items need to be specifically deleted.
-      def destroy!
-        @destroy = true
-      end
-
       # True if both type and value are empty.  In that state, the object represents a placeholder for
       # a given top-level group's data.
       def blank?
@@ -97,19 +88,6 @@ module Metadata
           return false unless self.send(field) == other.send(field)
         end
         return true
-      end
-
-      # Returns whether or not this record should be destroyed when the parent
-      # (ingest form) is "saved".  This method can be used by translator
-      # classes, and is necessary to conform to ActiveRecord-like specs.
-      def marked_for_destruction?
-        return @destroy
-      end
-
-      # This API is also used to conform to AR specs.  Always returns
-      # marked_for_destruction since that's what AR does.
-      def _destroy
-        return marked_for_destruction?
       end
     end
   end
