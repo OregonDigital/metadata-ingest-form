@@ -1,5 +1,3 @@
-require "metadata/ingest/form"
-
 module Metadata
   module Ingest
     class Form
